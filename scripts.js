@@ -147,7 +147,7 @@ function displayData(data){
 
 	// if we got an error in response, display that to the page/user
 	if(data.error){
-		current.innerHTML = `<p>There was an error: ${data.reason || "Unable to fetch weather"}. Please try again later.</p>`;
+		current.innerHTML = `<p>There was an error: ${data.reason}. Please try again later.</p>`;
 	}else{
 		// if there were no errors, let's add the weather to the page
 		let today = new Date();
@@ -166,10 +166,8 @@ function displayData(data){
 
 		//the upcoming forecast
 		for(let i = 0; i < 8; i++){
-			let date = new Date(data.daily.time[i]);
-			let fCode = data.daily.weather_code[i];
-			let fDesc = conditions[fCode].desc;
-			let fIcon = conditions[fCode].path;
+			// generate a date object from the given date for this day in the forecast
+			let date = new Date(data.daily.time[i]); // create a new date object using the information returned by the API
 
 			// add the weather for each date to the page with the information listed in comments above
 			forecastHTML += `<section class="day">
@@ -204,21 +202,21 @@ async function getWeather(location){
 			- also getting the current temperature and weather code
 			- temperature should be returned in Fahrenheit
 		*/
-	let endpoint = `https://api.open-meteo.com/v1/`;
+	let endpoint = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,weather_code&forecast_days=8&current=temperature_2m,weather_code&timezone=auto&wind_speed_unit=mph&temperature_unit=fahrenheit&precipitation_unit=inch`;
 
 
 	// fetch call to API
 	await fetch(endpoint)
-		.then(Response => Response.json())
-		.then(data => {
+		.then(response => response.json())
+		.then(function(data) {
 			displayData(data);
 			console.log(data);
-	})
+		})
+		.catch(function(error) {
+			console.log(error);
+		})
+	}
 
-	.catch(err => {
-		console.error(err);
-	})
-}
 
 //on page load, get geolocation
 window.addEventListener("load", function(){
