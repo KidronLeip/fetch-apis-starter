@@ -147,16 +147,17 @@ function displayData(data){
 
 	// if we got an error in response, display that to the page/user
 	if(data.error){
-		current.innerHTML = `<p>There was an error: ${"TO DO - ADD ERROR MESSAGE"}. Please try again later.</p>`;
+		current.innerHTML = `<p>There was an error: ${data.reason || "Unable to fetch weather"}. Please try again later.</p>`;
 	}else{
 		// if there were no errors, let's add the weather to the page
 		let today = new Date();
 		//the current weather
-		let currentHTML = `<h3>${"TO DO - ADD LOCATION NAME"}</h3>
-							<p>${"TO DO - Add the day of the week (full name)"}, ${"TO DO - add the month (full name)"} ${"TO DO - add the day of the month (numerical)"}</p>
-							<img src="${"TO DO - Add the icon from the conditions object above based on the weather code for this day"}" alt="${"TO DO - add the description of the weather on this day from the conditions object above based on the weather code"}">
-							<p><b>Current Weather: </b>${"TO DO - add the temperature without any decimal places"}&deg; and ${"TO DO - add the description of the weather on this day from the conditions object above based on the weather code"}</p>
+		let currentHTML = `<h3>${data.timezone || "Your Location"}</h3>
+							<p>${today.toLocaleDateString("en-us", {weekday: "long"})}, ${today.toLocaleDateString("en-us", {month: "long"})} ${today.getDate()}</p>
+							<img src="${conditions[data.current.weather_code].path}" alt="${conditions[data.current.weather_code].desc}">
+							<p><b>Current Weather: </b>${Math.round(data.current.temperature_2m)}&deg; and ${conditions[data.current.weather_code].desc}</p>
 							`;
+		
 		// add the current weather information to the page
 		current.innerHTML = currentHTML;
 
@@ -165,18 +166,21 @@ function displayData(data){
 
 		//the upcoming forecast
 		for(let i = 0; i < 8; i++){
-			// generate a date object from the given date for this day in the forecast
-			let date; // TO DO - create a new date object using the information returned by the API
+			let date = new Date(data.daily.time[i]);
+			let fCode = data.daily.weather_code[i];
+			let fDesc = conditions[fCode].desc;
+			let fIcon = conditions[fCode].path;
 
 			// add the weather for each date to the page with the information listed in comments above
 			forecastHTML += `<section class="day">
-								<h3><span>${"TO DO - Add the day of the week (full name)"}</span> ${"TO DO - add the month (full name)"} ${"TO DO - add the day of the month (numerical)"}</h3>
-								<img src="${"TO DO - Add the icon from the conditions object above based on the weather code for this day"}" alt="${"TO DO - add the description of the weather on this day from the conditions object above based on the weather code"}">
-								<p><b>High: </b>${"TO DO - add the high temperature for this day without any decimal places"}</p>
-								<p><b>Low: </b>${"TO DO - add the high temperature for this day without any decimal places"}</p>
-								<p>${"TO DO - add the description of the weather on this day from the conditions object above based on the weather code"}</p>
+								<h3><span>${date.toLocaleDateString(undefined, optionsDay)}</span> ${date.toLocaleDateString(undefined, optionsMonth)} ${date.getDate()}</h3>
+								<img src="${fIcon}" alt="${fDesc}">
+								<p><b>High: </b>${Math.round(data.daily.temperature_2m_max[i])}&deg;</p>
+								<p><b>Low: </b>${Math.round(data.daily.temperature_2m_min[i])}&deg;</p>
+								<p>${fDesc}</p>
 							</section>`;
 		}
+
 	// add the complete upcoming forecast to the page
 	forecast.innerHTML = forecastHTML;
 	}
@@ -200,11 +204,20 @@ async function getWeather(location){
 			- also getting the current temperature and weather code
 			- temperature should be returned in Fahrenheit
 		*/
-	let endpoint = `https://api.open-meteo.com/v1/`; // TO DO - complete the endpoint to return the data we need
+	let endpoint = `https://api.open-meteo.com/v1/`;
 
 
 	// fetch call to API
-	// TO DO
+	await fetch(endpoint)
+		.then(Response => Response.json())
+		.then(data => {
+			displayData(data);
+			console.log(data);
+	})
+
+	.catch(err => {
+		console.error(err);
+	})
 }
 
 //on page load, get geolocation
